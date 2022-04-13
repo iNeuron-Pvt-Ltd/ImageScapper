@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 
 def app():
     st.header("Welcome to iNeuron scrapper!!")
-    platform = st.sidebar.selectbox("Select the platform you want to scrape", ('Google Image Scraper','Instagram', 'Naukari', 'Stack Overflow'))
+    platform = st.sidebar.selectbox("Select the platform you want to scrape", ('Google Image Scraper', 'GitHub Topics','Instagram', 'Naukari', 'Stack Overflow'))
 
 # Google Image Scraper
     try:
@@ -127,6 +127,46 @@ def app():
 
     except Exception as e:
         return e
+
+    try:
+        if platform == 'GitHub Topics':
+            topics_url = 'https://github.com/topics'
+            response = requests.get(topics_url)
+            response.status_code
+            page_contents = response.text
+            doc = BeautifulSoup(page_contents, 'html.parser')
+            selection_class = 'f3 lh-condensed mb-0 mt-1 Link--primary'
+            topic_title_tags = doc.find_all('p', {'class': selection_class})
+            desc_selector = 'f5 color-fg-muted mb-0 mt-1'
+            topic_desc_tags = doc.find_all('p', {'class': desc_selector})
+            topic_link_tags = doc.find_all('a', {'class': 'no-underline flex-1 d-flex flex-column'})
+
+            topic_titles = []
+            for tag in topic_title_tags:
+                topic_titles.append(tag.text)
+            topic_descs = []
+
+            for tag in topic_desc_tags:
+                topic_descs.append(tag.text.strip())
+            topic_descs[:]
+
+            topic_urls = []
+            base_url = 'https://github.com'
+
+            for tag in topic_link_tags:
+                topic_urls.append(base_url + tag['href'])
+
+            topics_dict = {
+                'title': topic_titles,
+                'description': topic_descs,
+                'url': topic_urls
+            }
+            topics_df = pd.DataFrame(topics_dict)
+            st.dataframe(topics_df)
+    except Exception as e:
+        return e
+
+
     try:
         if platform == 'Instagram':
             user = st.text_input("Enter the instagram id you want to scrape..")
